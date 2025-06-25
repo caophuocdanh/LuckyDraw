@@ -1,0 +1,13 @@
+{
+  "settings": {
+    "title": "Lucky Draw",
+    "total_numbers": 48,
+    "draw_duration_seconds": 2
+  },
+  "prizes": [
+    { "name": "Giải Nhất", "count": 1, "color": "#f72585" },
+    { "name": "Giải Nhì", "count": 1, "color": "#fca311" },
+    { "name": "Giải Ba", "count": 2, "color": "#06d6a0" },
+    { "name": "Giải Khuyến Khích", "count": 2, "color": "#4361ee" }
+  ]
+}
