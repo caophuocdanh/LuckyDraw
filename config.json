@@ -1,13 +1,35 @@
 {
   "settings": {
     "title": "Lucky Draw",
-    "total_numbers": 48,
-    "draw_duration_seconds": 2
+    "total_numbers": 56,
+    "draw_duration_seconds": 2,
+    "music": false,
+    "music_duration": 5
   },
   "prizes": [
-    { "name": "Giải Nhất", "count": 1, "color": "#f72585" },
-    { "name": "Giải Nhì", "count": 1, "color": "#fca311" },
-    { "name": "Giải Ba", "count": 2, "color": "#06d6a0" },
-    { "name": "Giải Khuyến Khích", "count": 2, "color": "#4361ee" }
+    {
+      "id": 1,
+      "name": "Giải Nhất",
+      "count": 1,
+      "color": "#ff007f"
+    },
+    {
+      "id": 2,
+      "name": "Giải Nhì",
+      "count": 2,
+      "color": "#ffaa00"
+    },
+    {
+      "id": 3,
+      "name": "Giải Ba",
+      "count": 4,
+      "color": "#55ff7f"
+    },
+    {
+      "id": 4,
+      "name": "Giải Khuyến Khích",
+      "count": 5,
+      "color": "#ffaa7f"
+    }
   ]
 }
