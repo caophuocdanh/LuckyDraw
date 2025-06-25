@@ -1,10 +1,10 @@
 {
   "settings": {
     "title": "Lucky Draw",
-    "total_numbers": 56,
+    "total_numbers": 66,
     "draw_duration_seconds": 2,
-    "music": false,
-    "music_duration": 5
+    "music": true,
+    "music_duration": 9
   },
   "prizes": [
     {
