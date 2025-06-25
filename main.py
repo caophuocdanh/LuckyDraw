@@ -10,13 +10,25 @@ from PySide6.QtWidgets import (
     QSpinBox, QLineEdit, QColorDialog, QCheckBox
 )
 
-# ... (STYLESHEET và các class phụ trợ giữ nguyên) ...
-CONFIG_FILE = "config.json"
+# ==============================================================================
+# HÀM TIỆN ÍCH VÀ BIẾN TOÀN CỤC
+# ==============================================================================
+def resource_path(relative_path):
+    """ Lấy đường dẫn tuyệt đối tới tài nguyên, hoạt động cho cả dev và PyInstaller """
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
+if getattr(sys, 'frozen', False):
+    APP_DIR = os.path.dirname(sys.executable)
+else:
+    APP_DIR = os.path.dirname(os.path.abspath(__file__))
+
+CONFIG_FILE = resource_path("config.json")
 STYLESHEET = """
-        #MainWindow, #LuckyDrawWindow {
-            background-color: #ffffff;
-            font-family: 'Segoe UI', Arial, sans-serif;
-        }
+        #MainWindow, #LuckyDrawWindow { background-color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; }
         #LuckyDrawWindow > QFrame { background-color: transparent; }
         #ResultsScrollArea, #ResultsContainer { background-color: transparent; border: none; }
         QScrollBar:vertical { border: none; background: #f0f0f0; width: 8px; margin: 0px; }
@@ -43,11 +55,11 @@ STYLESHEET = """
         #TopRightButton:hover { color: #000; }
         QCheckBox { font-size: 14px; margin-top: 15px; }
         """
+# ... (Toàn bộ các class giữ nguyên như phiên bản trước, chỉ cần cập nhật hàm play_sound và __init__ của LuckyDrawApp)
+
 class QSpinBoxWithPlaceholder(QSpinBox):
     def __init__(self, placeholder_text="", parent=None):
-        super().__init__(parent)
-        self._placeholder_text = placeholder_text
-        self.setMinimum(0)
+        super().__init__(parent); self._placeholder_text = placeholder_text; self.setMinimum(0)
     def textFromValue(self, value):
         if value == self.minimum() and not self.hasFocus() and self._placeholder_text: return self._placeholder_text
         return super().textFromValue(value)
@@ -82,6 +94,7 @@ class PrizeItemWidget(QFrame):
     def get_data(self): return {"id": self.prize_id, "name": self.name_input.text(), "count": self.quantity_input.value(), "color": self.color_input.text()}
 
 class ConfigWindow(QWidget):
+    # ... (Toàn bộ class ConfigWindow giữ nguyên như phiên bản trước)
     next_prize_id = 1
     def __init__(self):
         super().__init__()
@@ -95,7 +108,6 @@ class ConfigWindow(QWidget):
         
         self.title_input = self.create_form_group(container, "Tiêu đề")
         self.participants_input = self.create_form_group(container, "Tổng số người", is_number=True)
-        
         self.music_checkbox = QCheckBox("Sử dụng nhạc nền khi quay")
         container.layout().addWidget(self.music_checkbox)
         
@@ -127,23 +139,13 @@ class ConfigWindow(QWidget):
         self.music_duration_input.setVisible(use_music)
         self.fixed_time_label.setVisible(not use_music)
         self.spin_time_input.setVisible(not use_music)
-
-    # [SỬA LỖI] Sửa lại hàm này
-    def create_form_group(self, parent_widget, label_text, is_number=False, placeholder=""):
-        label = QLabel(label_text)
-        label.setProperty("class", "FormLabel")
-        parent_widget.layout().addWidget(label)
         
-        if is_number:
-            widget = QSpinBoxWithPlaceholder(placeholder_text=placeholder)
-            widget.setRange(0, 99999)
-        else:
-            widget = QLineEdit()
-            if placeholder:
-                widget.setPlaceholderText(placeholder) # <-- Cách viết đúng
-                
-        parent_widget.layout().addWidget(widget)
-        return widget
+    def create_form_group(self, parent_widget, label_text, is_number=False, placeholder=""):
+        label = QLabel(label_text); label.setProperty("class", "FormLabel"); parent_widget.layout().addWidget(label)
+        widget = QSpinBoxWithPlaceholder(placeholder_text=placeholder) if is_number else QLineEdit()
+        if is_number: widget.setRange(0, 99999)
+        elif placeholder: widget.setPlaceholderText(placeholder)
+        parent_widget.layout().addWidget(widget); return widget
     
     def load_config(self):
         self.clear_prizes()
@@ -155,7 +157,6 @@ class ConfigWindow(QWidget):
             self.participants_input.setValue(settings.get("total_numbers", 0))
             self.spin_time_input.setValue(settings.get("draw_duration_seconds", 5))
             self.music_duration_input.setValue(settings.get("music_duration", 20))
-            
             use_music = settings.get("music", False)
             self.music_checkbox.setChecked(use_music)
             self.toggle_duration_inputs(self.music_checkbox.checkState().value)
@@ -165,39 +166,35 @@ class ConfigWindow(QWidget):
                 prize_id = prize_data.get('id', self.next_prize_id)
                 self.add_prize_item(prize_id, prize_data.get("name"), prize_data.get("count", 1), prize_data.get("color"))
                 max_id = max(max_id, prize_id)
-        except (FileNotFoundError, json.JSONDecodeError):
-            self.load_default_config()
+        except (FileNotFoundError, json.JSONDecodeError): self.load_default_config()
         self.next_prize_id = max_id + 1
 
     def load_default_config(self):
         self.title_input.setText("Lucky Draw"); self.participants_input.setValue(56)
         self.spin_time_input.setValue(5); self.music_duration_input.setValue(20)
         self.music_checkbox.setChecked(False)
+        self.toggle_duration_inputs(self.music_checkbox.checkState().value)
         self.clear_prizes()
         default_prizes = [{"id": 1, "name": "Giải Nhất", "count": 1, "color": "#f72585"}]
-        for prize in default_prizes:
-            self.add_prize_item(prize["id"], prize["name"], prize["count"], prize["color"])
+        for prize in default_prizes: self.add_prize_item(prize["id"], prize["name"], prize["count"], prize["color"])
         self.next_prize_id = 2
-
+        
     def save_config_and_close(self):
         prizes_data = [self.prize_list_layout.itemAt(i).widget().get_data() for i in range(self.prize_list_layout.count() - 1)]
         for i, prize_dict in enumerate(prizes_data): prize_dict['id'] = i + 1
-
+        
         total_prizes = sum(p.get('count', 0) for p in prizes_data)
         total_numbers = self.participants_input.value()
         warning_needed = False
         if total_numbers < total_prizes:
             warning_needed = True; total_numbers = total_prizes
             self.participants_input.setValue(total_numbers)
-
         config_data = {"settings": {
             "title": self.title_input.text(), "total_numbers": total_numbers,
             "draw_duration_seconds": self.spin_time_input.value(),
             "music": self.music_checkbox.isChecked(),
             "music_duration": self.music_duration_input.value()},
-            "prizes": prizes_data
-        }
-        
+            "prizes": prizes_data }
         try:
             with open(CONFIG_FILE, 'w', encoding='utf-8') as f: json.dump(config_data, f, indent=2, ensure_ascii=False)
             if warning_needed: QMessageBox.warning(self, "Tự động điều chỉnh", f"Tổng số người ít hơn tổng số giải.\nĐã tự động cập nhật Tổng số người thành {total_numbers}.")
@@ -208,20 +205,20 @@ class ConfigWindow(QWidget):
     def add_prize_item(self, prize_id, name, quantity, color):
         widget = PrizeItemWidget(prize_id, name, quantity, color); widget.deleted.connect(self.remove_prize_item)
         self.prize_list_layout.insertWidget(self.prize_list_layout.count() - 1, widget)
-    def add_new_prize_item(self):
-        self.add_prize_item(self.next_prize_id, name="", quantity=1, color="#cccccc"); self.next_prize_id += 1
+    def add_new_prize_item(self): self.add_prize_item(self.next_prize_id, name="", quantity=1, color="#cccccc"); self.next_prize_id += 1
     def clear_prizes(self):
         while self.prize_list_layout.count() > 1:
             if (item := self.prize_list_layout.takeAt(0).widget()): item.deleteLater()
-    def remove_prize_item(self, widget_to_remove):
-        widget_to_remove.deleteLater()
+    def remove_prize_item(self, widget_to_remove): widget_to_remove.deleteLater()
 
 class LuckyDrawApp(QWidget):
     def __init__(self):
         super().__init__()
         self.setObjectName("LuckyDrawWindow")
-        self.initialized_successfully = False; self.is_drawing = self.is_blinking = False
-        self.flashed_labels, self.number_labels = [], {}; self.results_file = "results.json"
+        self.initialized_successfully = False
+        self.is_drawing = self.is_blinking = False
+        self.flashed_labels, self.number_labels = [], {}
+        self.results_file = os.path.join(APP_DIR, "results.json")
         
         try: pygame.mixer.init()
         except Exception as e: print(f"Không thể khởi tạo pygame.mixer: {e}")
@@ -244,31 +241,34 @@ class LuckyDrawApp(QWidget):
             if sum(p['count'] for p in self.prizes_config) > self.settings.get('total_numbers', 0):
                 QMessageBox.critical(self, "Lỗi", "Số lượng giải thưởng nhiều hơn số lượng người tham gia!"); return False
             return True
-        except Exception as e: QMessageBox.critical(self, "Lỗi", f"Không thể đọc hoặc phân tích file config.json!\n{e}"); return False
+        except Exception as e:
+            QMessageBox.critical(self, "Lỗi", f"Không thể đọc hoặc phân tích file config.json!\n{e}"); return False
 
     def setup_ui(self):
         self.setWindowTitle(self.settings.get('title', "Quay Số May Mắn"))
         overall_layout = QVBoxLayout(self); overall_layout.setContentsMargins(10, 5, 10, 10); overall_layout.setSpacing(10)
         self.add_top_right_buttons(overall_layout)
+        
         main_content_layout = QHBoxLayout(); main_content_layout.setSpacing(20)
         self.left_frame = QFrame(self); self.grid_layout = QGridLayout(self.left_frame); self.grid_layout.setSpacing(5)
         self.right_frame = QFrame(self, fixedWidth=400)
         main_content_layout.addWidget(self.left_frame, 1); main_content_layout.addWidget(self.right_frame)
         overall_layout.addLayout(main_content_layout)
+        
         self.setup_right_panel(); self.create_number_grid(); self.redraw_number_grid()
 
     def add_top_right_buttons(self, parent_layout):
         top_button_layout = QHBoxLayout(); top_button_layout.addStretch(1)
-        buttons = [("⚙️", self.open_settings, "Cấu hình"),("💫", self.soft_reset_app, "Bắt đầu lại (giữ kết quả)"),
-                   ("🗑️", self.clear_and_reset_app, "Xóa toàn bộ kết quả và làm mới"),("❌", self.close, "Thoát")]
+        buttons = [("⚙️", self.open_settings, "Cấu hình"), ("💫", self.soft_reset_app, "Bắt đầu lại (giữ kết quả)"),
+                   ("🗑️", self.clear_and_reset_app, "Xóa toàn bộ kết quả và làm mới"), ("❌", self.close, "Thoát")]
         for text, cmd, tip in buttons:
-            btn = QPushButton(text, objectName="TopRightButton", toolTip=tip, cursor=Qt.PointingHandCursor, clicked=cmd)
+            btn = QPushButton(text, objectName="TopRightButton", toolTip=tip, cursor=Qt.PointingHandCursor); btn.clicked.connect(cmd)
             top_button_layout.addWidget(btn)
         parent_layout.addLayout(top_button_layout)
 
     def setup_right_panel(self):
         right_layout = QVBoxLayout(self.right_frame); right_layout.setAlignment(Qt.AlignCenter)
-        self.draw_button = QPushButton("👻", objectName="DrawButton", cursor=Qt.PointingHandCursor, clicked=self.start_draw)
+        self.draw_button = QPushButton("👻", objectName="DrawButton", cursor=Qt.PointingHandCursor); self.draw_button.clicked.connect(self.start_draw)
         scroll_area = QScrollArea(objectName="ResultsScrollArea", widgetResizable=True)
         results_container = QWidget(objectName="ResultsContainer")
         self.results_layout = QVBoxLayout(results_container); self.results_layout.setAlignment(Qt.AlignTop); self.results_layout.setSpacing(5)
@@ -297,13 +297,11 @@ class LuckyDrawApp(QWidget):
         
         self.is_drawing = True; self.draw_button.setEnabled(False); self.current_prize = self.prize_queue.pop(0)
         
-        # [NÂNG CẤP] Logic chọn thời gian quay
         if self.settings.get("music", False):
             self.play_sound("background_music.mp3", is_background=True)
             duration = self.settings.get("music_duration", 20)
         else:
             duration = self.settings.get('draw_duration_seconds', 5)
-        
         self.animation_timer.start(); QTimer.singleShot(duration * 1000, self.finish_draw)
 
     def animate_cells(self):
@@ -367,9 +365,10 @@ class LuckyDrawApp(QWidget):
         
     def play_sound(self, file, is_background=False):
         if not pygame.mixer.get_init(): return
+        file_path = resource_path(file)
         def _play():
-            try: pygame.mixer.music.load(file); pygame.mixer.music.play(-1 if is_background else 0)
-            except Exception as e: print(f"Lỗi phát nhạc '{file}': {e}")
+            try: pygame.mixer.music.load(file_path); pygame.mixer.music.play(-1 if is_background else 0)
+            except Exception as e: print(f"Lỗi phát nhạc '{file_path}': {e}")
         threading.Thread(target=_play, daemon=True).start()
 
     def soft_reset_app(self): QApplication.instance().quit(); os.execl(sys.executable, sys.executable, *sys.argv)
