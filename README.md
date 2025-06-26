@@ -2,6 +2,11 @@
 
 > **Ứng dụng quay số may mắn hiện đại** với giao diện đồ họa đẹp mắt, hỗ trợ tùy chỉnh giải thưởng, hiệu ứng âm thanh và lưu trữ kết quả. Hoàn hảo cho các sự kiện, bốc thăm trúng thưởng, hay bất kỳ hoạt động nào cần chọn ngẫu nhiên người thắng giải.
 
+<div align="center">
+  <img src="luckydraw.jpg" alt="LuckyDraw Application Screenshot" width="800">
+  <p><em>Giao diện chính của ứng dụng LuckyDraw</em></p>
+</div>
+
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.8+-green.svg)
 ![PySide6](https://img.shields.io/badge/PySide6-6.0+-orange.svg)
