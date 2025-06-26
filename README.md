@@ -32,7 +32,7 @@
 
 ### 1. Clone repository
 ```bash
-git clone https://github.com/username/luckydraw-py.git
+git clone https://github.com/caophuocdanh/luckydraw-py.git
 cd luckydraw-py
 ```
 
