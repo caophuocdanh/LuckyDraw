@@ -1,4 +1,4 @@
-# 🎲 LuckyDraw-py
+# 🎲 LuckyDraw
 
 > **Ứng dụng quay số may mắn hiện đại** với giao diện đồ họa đẹp mắt, hỗ trợ tùy chỉnh giải thưởng, hiệu ứng âm thanh và lưu trữ kết quả. Hoàn hảo cho các sự kiện, bốc thăm trúng thưởng, hay bất kỳ hoạt động nào cần chọn ngẫu nhiên người thắng giải.
 
